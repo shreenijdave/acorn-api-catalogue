@@ -1,6 +1,12 @@
-// src/App.jsx
-import Autocomplete from "@mui/material/Autocomplete";
+// React and Hooks
 import React, { useEffect, useState } from "react";
+
+// Material UI Components
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import RestartAltIcon from '@mui/icons-material/RestartAlt'; 
+import Autocomplete from "@mui/material/Autocomplete";
+
 import {
   Container,
   Grid,
@@ -11,23 +17,36 @@ import {
   MenuItem,
   Button,
 } from "@mui/material";
+
+// Custom Components
+import FilterBar from './components/FilterBar';
 import ContentCard from "./components/ContentCard";
 import ContentModal from "./components/ContentModal";
 import { fetchCatalogueItems } from "./api/content";
 
 const App = () => {
+  // All content items from the API
   const [items, setItems] = useState([]);
+  
+  // Filtered content based on user input
   const [filteredItems, setFilteredItems] = useState([]);
+  
+  // Active filter values
   const [filters, setFilters] = useState({
     type: "",
     category: "",
     tag: "",
     search: "",
   });
+
+  // Loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Item selected for modal preview
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // Fetch data on initial render
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -43,6 +62,7 @@ const App = () => {
     loadData();
   }, []);
 
+  // Apply filters whenever items or filters change
   useEffect(() => {
     let result = [...items];
 
@@ -76,6 +96,7 @@ const App = () => {
     setFilteredItems(result);
   }, [filters, items]);
 
+  // Extract unique values for filters
   const allTypes = [...new Set(items.map((item) => item.contenttype || ""))];
   const allCategories = [
     ...new Set(items.map((item) => item.category?.name).filter(Boolean)),
@@ -88,108 +109,50 @@ const App = () => {
   ];
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
-        Acorn Catalogue
-      </Typography>
+    <Box>
+      {/* Fixed header */} 
+      <AppBar position="fixed" sx={{ bgcolor: '#000' }}>
+        <Toolbar sx={{ justifyContent: 'center', gap: 1 }}>
+          <Typography variant="h6">Filter Catalogue</Typography>
+        </Toolbar>
+      </AppBar>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 2,
-          mb: 3,
-          alignItems: "center",
-          minWidth: { xs: "100%", sm: 220 },
-        }}
-      >
-        {/* Content Type Combobox */}
-        <Autocomplete
-          options={allTypes}
-          value={filters.type}
-          onChange={(e, newValue) =>
-            setFilters({ ...filters, type: newValue || "" })
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Content Type"
-              placeholder="Type or select"
-            />
-          )}
-          sx={{ minWidth: 220 }}
-          clearOnEscape
-          freeSolo
+      {/* Spacer to offset fixed AppBar */}
+      <Box sx={{ height: 104 }} /> 
+      
+      {/* Main content container */}
+      <Container>
+        {/* Filter bar component */}
+        <FilterBar
+          filters={filters}
+          setFilters={setFilters}
+          allTypes={allTypes}
+          allCategories={allCategories}
+          allTags={allTags}
         />
+        
+        {/* Loading and error handling */}
+        {loading && <CircularProgress />}
+        {error && <Typography color="error">{error}</Typography>}
+        {!loading && filteredItems.length === 0 && (
+          <Typography>No content found.</Typography>
+        )}
 
-        {/* Category Combobox */}
-        <Autocomplete
-          options={allCategories}
-          value={filters.category}
-          onChange={(e, newValue) =>
-            setFilters({ ...filters, category: newValue || "" })
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Category"
-              placeholder="Type or select"
-            />
-          )}
-          sx={{ minWidth: 220 }}
-          clearOnEscape
-          freeSolo
-        />
+        {/* Content preview grid */}
+        <Grid container spacing={2}>
+          {filteredItems.map((item) => (
+            <Grid item xs={12} sm={6} md={4} key={item.contentid}>
+              <ContentCard item={item} onClick={() => setSelectedItem(item)} />
+            </Grid>
+          ))}
+        </Grid>
 
-        {/* Tag Combobox */}
-        <Autocomplete
-          options={allTags}
-          value={filters.tag}
-          onChange={(e, newValue) =>
-            setFilters({ ...filters, tag: newValue || "" })
-          }
-          renderInput={(params) => (
-            <TextField {...params} label="Tag" placeholder="Type or select" />
-          )}
-          sx={{ minWidth: 220 }}
-          clearOnEscape
-          freeSolo
-        />
+        {/* Modal to preview course details */}
+        <ContentModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+      </Container>
 
-        {/* Name Search */}
-        <TextField
-          label="Search by name"
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          placeholder="Enter course name"
-          sx={{ minWidth: 220 }}
-        />
-      </Box>
-      <Button
-        variant="outlined"
-        onClick={() =>
-          setFilters({ type: "", category: "", tag: "", search: "" })
-        }
-      >
-        Reset Filters
-      </Button>
-
-      {loading && <CircularProgress />}
-      {error && <Typography color="error">{error}</Typography>}
-      {!loading && filteredItems.length === 0 && (
-        <Typography>No content found.</Typography>
-      )}
-
-      <Grid container spacing={2}>
-        {filteredItems.map((item) => (
-          <Grid item xs={12} sm={6} md={4} key={item.contentid}>
-            <ContentCard item={item} onClick={() => setSelectedItem(item)} />
-          </Grid>
-        ))}
-      </Grid>
-
-      <ContentModal item={selectedItem} onClose={() => setSelectedItem(null)} />
-    </Container>
+      <Box sx={{ height: 20 }} /> 
+  </Box>
   );
 };
 

@@ -1,81 +1,161 @@
-// src/components/ContentModal.jsx
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
-  Typography,
   IconButton,
+  Typography,
+  Button,
   Box,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+  Chip,
+  Stack,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
+
+// ContentModal Component
+// Shows detailed info about the selected item in a popup modal
 const ContentModal = ({ item, onClose }) => {
   if (!item) return null;
 
-  const imageUrl =
-    item.imageurl || "https://via.placeholder.com/600x300?text=No+Image";
+  const {
+    fullname,
+    imageurl,
+    contenttype,
+    category,
+    tags,
+    summary,
+    url,
+  } = item;
+
+  const imageSrc = imageurl || 'https://via.placeholder.com/600x300?text=No+Image';
 
   return (
-    <Dialog open={!!item} onClose={onClose} maxWidth="sm" fullWidth>
-      {/* Custom title with close button */}
-      <DialogTitle
+    <Dialog
+      open={!!item}
+      onClose={onClose}
+      aria-labelledby="course-title"
+      aria-describedby="course-description"
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          overflow: 'hidden',
+          boxShadow: 10,
+          bgcolor: '#fff',
+        },
+      }}
+    >
+      {/* Close Button */}
+      <IconButton
+        onClick={onClose}
+        aria-label="close"
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          color: 'white',
+          backgroundColor: 'rgba(0,0,0,0.4)',
+          zIndex: 10,
+          '&:hover': {
+            backgroundColor: 'rgba(0,0,0,0.6)',
+          },
         }}
       >
-        <Typography variant="h6">{item.fullname}</Typography>
-        <IconButton
-          edge="end"
-          color="inherit"
-          onClick={onClose}
-          aria-label="close"
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+        <CloseIcon />
+      </IconButton>
 
-      {/* Image preview */}
+      {/* Header Image */}
       <Box
         component="img"
-        src={imageUrl}
-        alt={item.fullname}
-        sx={{ width: "100%", maxHeight: 300, objectFit: "cover" }}
+        src={imageSrc}
+        alt={fullname}
+        sx={{
+          width: '100%',
+          height: { xs: 200, sm: 300 },
+          objectFit: 'cover',
+        }}
       />
 
-      {/* Content description */}
-      <DialogContent dividers>
-        <Typography variant="subtitle2" gutterBottom>
-          <strong>Type:</strong> {item.contenttype}
+      {/* Content */}
+      <DialogContent sx={{ py: 4, px: 3 }}>
+        <Typography variant="h5" fontWeight={600} gutterBottom>
+          {fullname}
         </Typography>
 
-        {item.category?.name && (
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Category:</strong> {item.category.name}
-          </Typography>
-        )}
-
-        {item.tags?.length > 0 && (
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Tags:</strong> {item.tags.map((tag) => tag.name).join(", ")}
-          </Typography>
-        )}
-
-        <DialogContentText>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: item.summary || "<i>No additional details.</i>",
+      {/* CATEGORY */}
+      {category?.name && (
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant="overline"
+            sx={{
+              display: 'inline-block',
+              backgroundColor: '#E3F2FD',
+              color: '#1565c0',
+              borderRadius: 2,
+              px: 1.5,
+              py: 0.5,
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              letterSpacing: 1,
+              textTransform: 'uppercase',
             }}
-          />
-        </DialogContentText>
-        <a href={item.url} target="_blank" rel="noopener noreferrer">
-          View Full Course
-        </a>
-      </DialogContent>
-    </Dialog>
+          >
+            {category.name}
+          </Typography>
+        </Box>
+      )}
+
+      {/* TAGS */}
+      {tags?.length > 0 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+          {tags.map((tag) => (
+            <Box
+              key={tag.id}
+              sx={{
+                backgroundColor: '#f1f1f1',
+                color: '#555',
+                borderRadius: 10,
+                px: 1.5,
+                py: 0.5,
+                fontSize: '0.75rem',
+              }}
+            >
+              #{tag.name}
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {/* Description */}
+      <Box>
+        <Typography
+          variant="body1"
+          component="div"
+          sx={{ lineHeight: 1.8 }}
+          dangerouslySetInnerHTML={{
+            __html: summary || '<i>No description available.</i>',
+          }}
+        />
+      </Box>
+
+      {/* CTA Button */}
+      {url && (
+        <Box mt={4} textAlign="right">
+          <Button
+            variant="contained"
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="large"
+          >
+            View Full Course
+          </Button>
+        </Box>
+      )}
+    </DialogContent>
+  </Dialog>
   );
 };
 
